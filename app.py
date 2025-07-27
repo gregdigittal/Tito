@@ -22,22 +22,23 @@ print("✅ App started")
 @st.cache_resource
 def init_firebase():
     import json
+    from google.oauth2 import service_account
 
     if "SERVICE_ACCOUNT_JSON" not in st.secrets:
         st.error("❌ SERVICE_ACCOUNT_JSON secret not found in Streamlit secrets.")
         st.stop()
 
     creds_dict = json.loads(st.secrets["SERVICE_ACCOUNT_JSON"])
-    cred = credentials.Certificate(creds_dict)
+    creds = service_account.Credentials.from_service_account_info(creds_dict)
 
     if not firebase_admin._apps:
-        firebase_admin.initialize_app(cred)
+        firebase_admin.initialize_app(credentials=creds)
 
     print("✅ Firebase initialized")
     return firestore.client()
 
 db = init_firebase()
-print("✅ Firebase initialized")
+print("✅ Firestore client ready")
 # ─── WIRE IN YOUR CORE ENGINE ───
 from finance_engine import run_financial_model_core
 
