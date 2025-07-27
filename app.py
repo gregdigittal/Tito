@@ -25,18 +25,19 @@ def init_connection():
     Initializes a connection to Google Firestore using credentials
     stored in Streamlit's secrets management.
     """
-    # Get credentials from Streamlit secrets.
-    # This assumes you saved your credentials as a TOML table
-    # in the secrets editor with the key "gcp_service_account".
-    import json # Make sure json is imported
-    creds_dict = st.secrets["gcp_service_account"]
+    import json
+    
+    # This is the line that was likely missing.
+    # It reads the secret from Streamlit into a variable.
+    creds_json_str = st.secrets["gcp_service_account"]
+    
+    # This line then uses the variable defined above.
     creds_dict = json.loads(creds_json_str)
     
-    # Initialize the Firebase app if it hasn't been already.
+    creds = credentials.Certificate(creds_dict)
     if not firebase_admin._apps:
         firebase_admin.initialize_app(creds)
     
-    # Return the firestore client.
     return firestore.client()
 
 # Establish the database connection by calling the function
