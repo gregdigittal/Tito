@@ -30,7 +30,7 @@ def init_connection():
     # in the secrets editor with the key "gcp_service_account".
     import json # Make sure json is imported
     creds_dict = st.secrets["gcp_service_account"]
-    creds = credentials.Certificate(creds_dict)
+    creds_dict = json.loads(creds_json_str)
     
     # Initialize the Firebase app if it hasn't been already.
     if not firebase_admin._apps:
