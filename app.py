@@ -20,25 +20,28 @@ print("✅ App started")
 
 # ─── FIREBASE INITIALIZATION ───
 @st.cache_resource
-def init_firebase():
-    import json
-    from google.oauth2 import service_account
-
-    if "SERVICE_ACCOUNT_JSON" not in st.secrets:
-        st.error("❌ SERVICE_ACCOUNT_JSON secret not found in Streamlit secrets.")
-        st.stop()
-
-    creds_dict = json.loads(st.secrets["SERVICE_ACCOUNT_JSON"])
+def init_connection():
+    """
+    Initializes a connection to Google Firestore using credentials
+    stored in Streamlit's secrets management.
+    """
+    # Get credentials from Streamlit secrets.
+    # This assumes you saved your credentials as a TOML table
+    # in the secrets editor with the key "gcp_service_account".
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = credentials.Certificate(creds_dict)
     
-    # ✅ Add required scopes for Firestore
-    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
-    creds = service_account.Credentials.from_service_account_info(creds_dict, scopes=scopes)
-
+    # Initialize the Firebase app if it hasn't been already.
     if not firebase_admin._apps:
-        firebase_admin.initialize_app(credentials=creds)
-
-    print("✅ Firebase initialized")
+        firebase_admin.initialize_app(creds)
+    
+    # Return the firestore client.
     return firestore.client()
+
+# Establish the database connection by calling the function
+db = init_connection()
+
+
 # ─── WIRE IN YOUR CORE ENGINE ───
 from finance_engine import run_financial_model_core
 
