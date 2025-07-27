@@ -13,23 +13,22 @@ from scipy.optimize import newton
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-print("✅ App started")
+# --- 1. FUNCTION DEFINITIONS ---
+
 def check_password():
     """Returns `True` if the user entered the correct password."""
 
     def password_entered():
         """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == st.secrets["APP_PASSWORD"]:
+        if st.secrets["APP_PASSWORD"] == st.session_state["password"]:
             st.session_state["password_correct"] = True
             del st.session_state["password"]  # Don't store the password in session state.
         else:
             st.session_state["password_correct"] = False
 
-    # Return True if the passward is validated.
     if st.session_state.get("password_correct", False):
         return True
 
-    # Show input for password.
     st.text_input(
         "Password", type="password", on_change=password_entered, key="password"
     )
@@ -39,50 +38,70 @@ def check_password():
 
 @st.cache_resource
 def init_connection():
-    """
-    Initializes a connection to Google Firestore by converting
-    Streamlit's AttrDict to a standard dict.
-    """
-    # Get the secret, which is a Streamlit AttrDict object.
+    """Initializes a connection to Google Firestore."""
     secret_value = st.secrets["gcp_service_account"]
-
-    # Convert the AttrDict to a standard Python dictionary.
     creds_dict = dict(secret_value)
-    
-    # Initialize Firebase with the standard dictionary.
     creds = credentials.Certificate(creds_dict)
     if not firebase_admin._apps:
         firebase_admin.initialize_app(creds)
-    
     return firestore.client()
 
-# Establish the database connection by calling the function
-# First, run the password check.
+# IMPORTANT: You must modify your own functions to accept 'db' as a parameter.
+# For example, find your 'render_setup_page' function and change its definition:
+#
+# BEFORE: def render_setup_page():
+# AFTER:  def render_setup_page(db_connection):
+#
+# Do this for every function that needs to access the database.
+
+# --- 2. MAIN APP LOGIC ---
+
 if check_password():
-    # If the password is correct, THEN connect to the database.
-   db = init_connection()
+    # --- Everything below this line will only run if the password is correct ---
 
+    # Establish the database connection
+    db = init_connection()
 
-# ─── WIRE IN YOUR CORE ENGINE ───
-from finance_engine import run_financial_model_core
+    # Import your core engine
+    from finance_engine import run_financial_model_core
 
-# ─── STREAMLIT PAGE CONFIG ───
-st.set_page_config(page_title="Financial Model", layout="wide")
-st.sidebar.image("logo.png", use_container_width=True)
+    # Set up page configuration
+    st.set_page_config(page_title="Financial Model", layout="wide")
+    st.sidebar.image("logo.png", use_container_width=True)
 
-page = st.sidebar.radio(
-    "Go to",
-    ["Market Setup", "Financial Model", "Consolidated View"],
-    key="nav_main"
-)
+    # Set up page navigation
+    page = st.sidebar.radio(
+        "Go to",
+        ["Market Setup", "Financial Model", "Consolidated View"],
+        key="nav_main"
+    )
 
-# ─── MODEL WRAPPER ───
-@st.cache_data
-def run_financial_model(sa: dict, sc: dict, adj_hash: str) -> pd.DataFrame:
-    ui = st.session_state[adj_hash]
-    adj = dict(sa)
-    adj.update(ui)
-    return run_financial_model_core(sa, sc, adj)
+    # Define the model wrapper function
+    @st.cache_data
+    def run_financial_model(sa: dict, sc: dict, adj_hash: str) -> pd.DataFrame:
+        ui = st.session_state[adj_hash]
+        adj = dict(sa)
+        adj.update(ui)
+        return run_financial_model_core(sa, sc, adj)
+
+    # --- Page Rendering Logic ---
+    # Call the correct page function based on the sidebar selection,
+    # passing the 'db' object to it.
+
+    if page == "Market Setup":
+        # Make sure you have a function called render_setup_page(db) defined somewhere
+        # render_setup_page(db)
+        st.success("Logged in. Ready to render Market Setup page.")
+        
+    elif page == "Financial Model":
+        # Make sure you have a function called render_financial_model_page(db)
+        # render_financial_model_page(db)
+        st.success("Logged in. Ready to render Financial Model page.")
+        
+    elif page == "Consolidated View":
+        # Make sure you have a function called render_consolidated_view_page(db)
+        # render_consolidated_view_page(db)
+        st.success("Logged in. Ready to render Consolidated View page.")
 
 # ─── 0. SCHEMAS ───
 ASSUMPTION_SCHEMA = {
