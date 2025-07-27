@@ -22,36 +22,16 @@ print("✅ App started")
 @st.cache_resource
 def init_connection():
     """
-    Final diagnostic function to identify the secret's type and content.
+    Final corrected function to initialize Firebase by converting
+    Streamlit's AttrDict to a standard dict.
     """
-    import json
-
-    # 1. First, check if the secret key even exists.
-    if "gcp_service_account" not in st.secrets:
-        st.error("Your secret is not named 'gcp_service_account'. Please check the name in your Streamlit Cloud settings.")
-        # Stop the app if the secret is missing.
-        st.stop()
-
-    # 2. Get the value and print its type and content for debugging.
+    # Get the secret, which is a Streamlit AttrDict object.
     secret_value = st.secrets["gcp_service_account"]
-    st.write("--- DEBUG INFO ---")
-    st.write("The secret key 'gcp_service_account' was found.")
-    st.write(f"The type of the secret is: **{type(secret_value)}**")
-    st.write("The content of the secret is:")
-    # Use st.text to safely display whatever the content is.
-    st.text(secret_value)
-    st.write("--- END DEBUG INFO ---")
 
-    # 3. Attempt to process the secret.
-    if isinstance(secret_value, dict):
-        creds_dict = secret_value
-    elif isinstance(secret_value, str) and secret_value:
-        creds_dict = json.loads(secret_value)
-    else:
-        st.error("The secret value is empty or an unexpected type. Please delete and re-create the secret from a fresh JSON key file.")
-        st.stop()
+    # Convert the AttrDict to a standard Python dictionary.
+    creds_dict = dict(secret_value)
     
-    # Initialize Firebase with the processed credentials
+    # Initialize Firebase with the standard dictionary.
     creds = credentials.Certificate(creds_dict)
     if not firebase_admin._apps:
         firebase_admin.initialize_app(creds)
