@@ -15,26 +15,6 @@ from firebase_admin import credentials, firestore
 
 # --- 1. FUNCTION DEFINITIONS ---
 
-def check_password():
-    """Returns `True` if the user entered the correct password."""
-
-    def password_entered():
-        """Checks whether a password entered by the user is correct."""
-        if st.secrets["APP_PASSWORD"] == st.session_state["password"]:
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]  # Don't store the password in session state.
-        else:
-            st.session_state["password_correct"] = False
-
-    if st.session_state.get("password_correct", False):
-        return True
-
-    st.text_input(
-        "Password", type="password", on_change=password_entered, key="password"
-    )
-    if "password_correct" in st.session_state:
-        st.error("😕 Password incorrect")
-    return False
 
 @st.cache_resource
 def init_connection():
@@ -46,62 +26,27 @@ def init_connection():
         firebase_admin.initialize_app(creds)
     return firestore.client()
 
-# IMPORTANT: You must modify your own functions to accept 'db' as a parameter.
-# For example, find your 'render_setup_page' function and change its definition:
-#
-# BEFORE: def render_setup_page():
-# AFTER:  def render_setup_page(db_connection):
-#
-# Do this for every function that needs to access the database.
 
-# --- 2. MAIN APP LOGIC ---
+# ─── WIRE IN YOUR CORE ENGINE ───
+from finance_engine import run_financial_model_core
 
-if check_password():
-    # --- Everything below this line will only run if the password is correct ---
+# ─── STREAMLIT PAGE CONFIG ───
+st.set_page_config(page_title="Financial Model", layout="wide")
+st.sidebar.image("logo.png", use_container_width=True)
 
-    # Establish the database connection
-    db = init_connection()
+page = st.sidebar.radio(
+    "Go to",
+    ["Market Setup", "Financial Model", "Consolidated View"],
+    key="nav_main"
+)
 
-    # Import your core engine
-    from finance_engine import run_financial_model_core
-
-    # Set up page configuration
-    st.set_page_config(page_title="Financial Model", layout="wide")
-    st.sidebar.image("logo.png", use_container_width=True)
-
-    # Set up page navigation
-    page = st.sidebar.radio(
-        "Go to",
-        ["Market Setup", "Financial Model", "Consolidated View"],
-        key="nav_main"
-    )
-
-    # Define the model wrapper function
-    @st.cache_data
-    def run_financial_model(sa: dict, sc: dict, adj_hash: str) -> pd.DataFrame:
-        ui = st.session_state[adj_hash]
-        adj = dict(sa)
-        adj.update(ui)
-        return run_financial_model_core(sa, sc, adj)
-
-    # --- Page Rendering Logic ---
-    # Call the correct page function based on the sidebar selection,
-    # passing the 'db' object to it.
-
-    if page == "Market Setup":
-        # Make sure you have a function called render_setup_page(db) defined somewhere
-        # render_setup_page(db)
-        st.success("Logged in. Ready to render Market Setup page.")
-        
-    elif page == "Financial Model":
-        # Make sure you have a function called render_financial_model_page(db)
-        # render_financial_model_page(db)
-        st.success("Logged in. Ready to render Financial Model page.")
-        
-    elif page == "Consolidated View":
-        # Make sure you have a function called render_consolidated_view_page(db)
-        # render_consolidated_view_page(db)
-        st.success("Logged in. Ready to render Consolidated View page.")
+# ─── MODEL WRAPPER ───
+@st.cache_data
+def run_financial_model(sa: dict, sc: dict, adj_hash: str) -> pd.DataFrame:
+    ui = st.session_state[adj_hash]
+    adj = dict(sa)
+    adj.update(ui)
+    return run_financial_model_core(sa, sc, adj)
 
 # ─── 0. SCHEMAS ───
 ASSUMPTION_SCHEMA = {
