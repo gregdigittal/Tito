@@ -13,19 +13,27 @@ from scipy.optimize import newton
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# --- 1. FUNCTION DEFINITIONS ---
-
-
+# ─── FIREBASE INITIALIZATION ───
 @st.cache_resource
 def init_connection():
-    """Initializes a connection to Google Firestore."""
+    """
+    Final corrected function to initialize Firebase by converting
+    Streamlit's AttrDict to a standard dict.
+    """
+    # Get the secret, which is a Streamlit AttrDict object.
     secret_value = st.secrets["gcp_service_account"]
+
+    # Convert the AttrDict to a standard Python dictionary.
     creds_dict = dict(secret_value)
+    
+    # Initialize Firebase with the standard dictionary.
     creds = credentials.Certificate(creds_dict)
     if not firebase_admin._apps:
         firebase_admin.initialize_app(creds)
+    
     return firestore.client()
 
+db = init_firebase()
 
 # ─── WIRE IN YOUR CORE ENGINE ───
 from finance_engine import run_financial_model_core
@@ -174,7 +182,7 @@ def render_model_dashboard(country: str, sa: dict, sc: dict):
 
     validate_dict(sa, ASSUMPTION_SCHEMA, "Loaded assumptions")
     validate_dict(sc, SCHEDULE_SCHEMA, "Loaded schedules")
-    print("✅ Loaded assumptions")
+
     ui = {}
     ui.update(st.session_state.get(f"adj_{country}", {}))
     ui["pilot_m1"] = sc["vehicle_ramp_up_schedule"][0]
