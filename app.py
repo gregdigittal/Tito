@@ -29,16 +29,16 @@ def init_firebase():
         st.stop()
 
     creds_dict = json.loads(st.secrets["SERVICE_ACCOUNT_JSON"])
-    creds = service_account.Credentials.from_service_account_info(creds_dict)
+    
+    # ✅ Add required scopes for Firestore
+    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+    creds = service_account.Credentials.from_service_account_info(creds_dict, scopes=scopes)
 
     if not firebase_admin._apps:
         firebase_admin.initialize_app(credentials=creds)
 
     print("✅ Firebase initialized")
     return firestore.client()
-
-db = init_firebase()
-print("✅ Firestore client ready")
 # ─── WIRE IN YOUR CORE ENGINE ───
 from finance_engine import run_financial_model_core
 
