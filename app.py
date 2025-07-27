@@ -21,13 +21,19 @@ print("✅ App started")
 # ─── FIREBASE INITIALIZATION ───
 @st.cache_resource
 def init_firebase():
-    key = "serviceAccountKey.json"
-    if not os.path.exists(key):
-        st.error(f"❌ {key} not found. Upload it to your working directory.")
+    import json
+
+    if "SERVICE_ACCOUNT_JSON" not in st.secrets:
+        st.error("❌ SERVICE_ACCOUNT_JSON secret not found in Streamlit secrets.")
         st.stop()
-    cred = credentials.Certificate(key)
+
+    creds_dict = json.loads(st.secrets["SERVICE_ACCOUNT_JSON"])
+    cred = credentials.Certificate(creds_dict)
+
     if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
+
+    print("✅ Firebase initialized")
     return firestore.client()
 
 db = init_firebase()
