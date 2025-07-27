@@ -33,7 +33,7 @@ def init_connection():
     
     return firestore.client()
 
-db = init_firebase()
+db = init_connection()
 
 # ─── WIRE IN YOUR CORE ENGINE ───
 from finance_engine import run_financial_model_core
