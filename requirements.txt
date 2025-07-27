@@ -1,9 +1,0 @@
-streamlit
-pandas
-numpy
-matplotlib
-seaborn
-scipy
-firebase-admin
-openpyxl
-xlsxwriter
