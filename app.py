@@ -24,11 +24,27 @@ def init_connection():
     """
     Initializes a connection to Google Firestore using credentials
     stored in Streamlit's secrets management.
+    This version includes diagnostics to handle secret formatting issues.
     """
-    # Directly read the dictionary from secrets. No json.loads() needed.
-    creds_dict = st.secrets["gcp_service_account"]
-    
-    # The rest of the function remains the same
+    import json
+
+    # Read the secret from Streamlit
+    secret_value = st.secrets["gcp_service_account"]
+
+    # For debugging: write the type of the secret to the app screen
+    st.write(f"Secret format detected: {type(secret_value)}")
+
+    # Check if the secret is a dictionary (correct TOML format)
+    if isinstance(secret_value, dict):
+        creds_dict = secret_value
+    # Check if it's a string (needs parsing)
+    elif isinstance(secret_value, str):
+        creds_dict = json.loads(secret_value)
+    # Handle unexpected types
+    else:
+        raise ValueError("Secret is not in a valid format (dict or JSON string)")
+
+    # Initialize Firebase with the processed credentials
     creds = credentials.Certificate(creds_dict)
     if not firebase_admin._apps:
         firebase_admin.initialize_app(creds)
