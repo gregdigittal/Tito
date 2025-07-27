@@ -28,6 +28,7 @@ def init_connection():
     # Get credentials from Streamlit secrets.
     # This assumes you saved your credentials as a TOML table
     # in the secrets editor with the key "gcp_service_account".
+    import json # Make sure json is imported
     creds_dict = st.secrets["gcp_service_account"]
     creds = credentials.Certificate(creds_dict)
     
