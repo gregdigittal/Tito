@@ -13,6 +13,11 @@ from scipy.optimize import newton
 import firebase_admin
 from firebase_admin import credentials, firestore
 
+print("✅ App started")
+
+
+
+
 # ─── FIREBASE INITIALIZATION ───
 @st.cache_resource
 def init_firebase():
@@ -26,7 +31,7 @@ def init_firebase():
     return firestore.client()
 
 db = init_firebase()
-
+print("✅ Firebase initialized")
 # ─── WIRE IN YOUR CORE ENGINE ───
 from finance_engine import run_financial_model_core
 
@@ -174,7 +179,7 @@ def render_model_dashboard(country: str, sa: dict, sc: dict):
 
     validate_dict(sa, ASSUMPTION_SCHEMA, "Loaded assumptions")
     validate_dict(sc, SCHEDULE_SCHEMA, "Loaded schedules")
-
+    print("✅ Loaded assumptions")
     ui = {}
     ui.update(st.session_state.get(f"adj_{country}", {}))
     ui["pilot_m1"] = sc["vehicle_ramp_up_schedule"][0]
@@ -367,7 +372,7 @@ def render_model_dashboard(country: str, sa: dict, sc: dict):
         equity_range = st.slider("Equity Injection (Month 1)", 10000, 500000, (20000, 80000), step=5000)
         dividend_range = st.slider("Dividend (Month 60)", 0, 300000, (0, 200000), step=10000)
         terminal_range = st.slider("Terminal Value (Month 60)", 0, 1000000, (300000, 700000), step=10000)
-
+        print("✅ Ready for simulation")
         if st.button("Run Monte Carlo Simulation"):
             results = []
             progress = st.progress(0)
