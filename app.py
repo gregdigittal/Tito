@@ -57,6 +57,9 @@ def init_connection():
     return firestore.client()
 
 # Establish the database connection by calling the function
+# First, run the password check.
+if check_password():
+    # If the password is correct, THEN connect to the database.
 db = init_connection()
 
 
